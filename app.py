@@ -22,7 +22,6 @@ def get_db_connection():
     """
     Returns a new SQLite connection to 'library.db' located next to this script.
     """
-    # Compute path to library.db (assumes this app.py lives in library_webapp/)
     base_dir = os.path.dirname(os.path.abspath(__file__))
     db_path = os.path.join(base_dir, "library.db")
     conn = sqlite3.connect(db_path)
@@ -87,7 +86,7 @@ def search():
         where_clauses.append("bc.CategoryID = ?")
         params.append(int(category_id_str))
 
-    # 5d) Use SQLite‐compatible GROUP_CONCAT syntax
+    # 5d) Use SQLite-compatible GROUP_CONCAT syntax (no custom separator with DISTINCT)
     base_query = """
         SELECT
           b.BookID,
@@ -97,8 +96,8 @@ def search():
           b.description,
           b.publisher,
           b.publish_date,
-          GROUP_CONCAT(DISTINCT a.FullName, ', ')    AS Authors,
-          GROUP_CONCAT(DISTINCT c.CategoryName, ', ') AS Categories
+          GROUP_CONCAT(DISTINCT a.FullName)    AS Authors,
+          GROUP_CONCAT(DISTINCT c.CategoryName) AS Categories
         FROM Books b
         LEFT JOIN BookAuthors ba ON ba.BookID = b.BookID
         LEFT JOIN Authors a     ON a.AuthorID = ba.AuthorID
@@ -122,11 +121,21 @@ def search():
     if title_query or author_id_str.isdigit() or category_id_str.isdigit():
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute(sql, params)
-        results = cursor.fetchall()
-        print("=== DEBUG RESULTS ROWCOUNT ===", len(results))
-        cursor.close()
-        conn.close()
+        try:
+            cursor.execute(sql, params)
+            results = cursor.fetchall()
+            print("=== DEBUG RESULTS ROWCOUNT ===", len(results))
+        except Exception as e:
+            # Force-print any exception details to the log
+            print("!!! ERROR in /search query !!!")
+            print("SQL:", sql)
+            print("PARAMS:", params)
+            import traceback; traceback.print_exc()
+            return (f"<h1>Server Error</h1>"
+                    f"<pre>Exception: {type(e).__name__}: {e}\n\n{traceback.format_exc()}</pre>"), 500
+        finally:
+            cursor.close()
+            conn.close()
 
     return render_template(
         "search.html",
