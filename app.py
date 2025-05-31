@@ -67,16 +67,18 @@ def fetch_all_categories():
 # -----------------------------------------------------------------------------
 @app.route("/search", methods=["GET"])
 def search():
-    # Read GET parameters from the request URL
+    # 5a) Read GET parameters from the request URL
     title_query     = request.args.get("title", "").strip()
     author_id_str   = request.args.get("author_id", "").strip()
     category_id_str = request.args.get("category_id", "").strip()
+    sort_by         = request.args.get("sort_by", "title").strip()
+    sort_dir        = request.args.get("sort_dir", "asc").lower().strip()
 
-    # Fetch dropdown options
+    # 5b) Fetch dropdown data
     authors    = fetch_all_authors()
     categories = fetch_all_categories()
 
-    # Build WHERE clauses dynamically
+    # 5c) Build WHERE clauses dynamically
     where_clauses = []
     params = []
 
@@ -93,7 +95,20 @@ def search():
         where_clauses.append("bc.CategoryID = ?")
         params.append(int(category_id_str))
 
-    # Use SQLite-compatible GROUP_CONCAT syntax (distinct without custom separator)
+    # 5d) Whitelist mapping of allowed sort columns → actual DB columns
+    allowed_sort_columns = {
+        "title": "b.title",
+        "description": "b.description",
+        "publisher": "b.publisher",
+        "publish_date": "b.publish_date"
+    }
+
+    # Fallback if user supplied invalid sort_by
+    sort_column_db = allowed_sort_columns.get(sort_by, "b.title")
+    # Normalize direction
+    sort_direction = "DESC" if sort_dir == "desc" else "ASC"
+
+    # 5e) Base SELECT (SQLite-compatible GROUP_CONCAT syntax)
     base_query = """
         SELECT
           b.BookID,
@@ -116,10 +131,11 @@ def search():
         sql = (
             base_query
             + " WHERE " + " AND ".join(where_clauses)
-            + " GROUP BY b.BookID ORDER BY b.title ASC;"
+            + " GROUP BY b.BookID "
+            + f"ORDER BY {sort_column_db} {sort_direction};"
         )
     else:
-        sql = base_query + " GROUP BY b.BookID ORDER BY b.title ASC;"
+        sql = base_query + f" GROUP BY b.BookID ORDER BY {sort_column_db} {sort_direction};"
 
     # === Debug: print the final SQL and params ===
     print("=== DEBUG SQL ===")
@@ -128,7 +144,8 @@ def search():
     print(params)
 
     results = []
-    # Only run query if at least one filter is present
+    # Only run query if at least one filter is present (or we want to show *all* books by default)
+    # If you’d rather always show a “full listing” even with no filters, remove the outer `if`.
     if title_query or author_id_str.isdigit() or category_id_str.isdigit():
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -158,7 +175,9 @@ def search():
         form_data={
             "title": title_query,
             "author_id": author_id_str,
-            "category_id": category_id_str
+            "category_id": category_id_str,
+            "sort_by": sort_by,
+            "sort_dir": sort_dir
         }
     )
 

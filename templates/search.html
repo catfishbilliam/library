@@ -9,7 +9,7 @@
         name="title"
         id="title"
         value="{{ form_data.title }}"
-        placeholder="Enter search here..."
+        placeholder="e.g. American Gods"
       />
     </div>
     <div>
@@ -33,7 +33,11 @@
       </select>
     </div>
 
-    <!-- Button row (no inline margin; layout.css will handle spacing) -->
+    <!-- Hidden inputs to preserve sort state -->
+    <input type="hidden" name="sort_by" value="{{ form_data.sort_by }}">
+    <input type="hidden" name="sort_dir" value="{{ form_data.sort_dir }}">
+
+    <!-- Centered buttons under the form -->
     <div class="search-actions">
       <button type="submit">Search</button>
       <a href="{{ url_for('search') }}">Clear</a>
@@ -45,35 +49,85 @@
       <table>
         <thead>
           <tr>
-            <th>Title</th>
-            <th>Description</th>
+            {#  
+               Each <th> is now a link that re‐fires the same /search?q=.. 
+               but toggles sort_by and sort_dir accordingly.
+            #}
+            {% set toggle_dir = "asc" if form_data.sort_dir == "desc" else "desc" %}
+
+            <th>
+              <a
+                href="{{ url_for('search',
+                                title=form_data.title,
+                                author_id=form_data.author_id,
+                                category_id=form_data.category_id,
+                                sort_by='title',
+                                sort_dir=( 'asc' if form_data.sort_by != 'title' or form_data.sort_dir=='desc' else 'desc' ) ) }}">
+                Title
+                {% if form_data.sort_by == 'title' %}
+                  {{ '↑' if form_data.sort_dir=='asc' else '↓' }}
+                {% endif %}
+              </a>
+            </th>
+
+            <th>
+              <a
+                href="{{ url_for('search',
+                                title=form_data.title,
+                                author_id=form_data.author_id,
+                                category_id=form_data.category_id,
+                                sort_by='description',
+                                sort_dir=( 'asc' if form_data.sort_by != 'description' or form_data.sort_dir=='desc' else 'desc' ) ) }}">
+                Description
+                {% if form_data.sort_by == 'description' %}
+                  {{ '↑' if form_data.sort_dir=='asc' else '↓' }}
+                {% endif %}
+              </a>
+            </th>
+
+            <th>
+              <a
+                href="{{ url_for('search',
+                                title=form_data.title,
+                                author_id=form_data.author_id,
+                                category_id=form_data.category_id,
+                                sort_by='publisher',
+                                sort_dir=( 'asc' if form_data.sort_by != 'publisher' or form_data.sort_dir=='desc' else 'desc' ) ) }}">
+                Publisher
+                {% if form_data.sort_by == 'publisher' %}
+                  {{ '↑' if form_data.sort_dir=='asc' else '↓' }}
+                {% endif %}
+              </a>
+            </th>
+
+            <th>
+              <a
+                href="{{ url_for('search',
+                                title=form_data.title,
+                                author_id=form_data.author_id,
+                                category_id=form_data.category_id,
+                                sort_by='publish_date',
+                                sort_dir=( 'asc' if form_data.sort_by != 'publish_date' or form_data.sort_dir=='desc' else 'desc' ) ) }}">
+                Publish Date
+                {% if form_data.sort_by == 'publish_date' %}
+                  {{ '↑' if form_data.sort_dir=='asc' else '↓' }}
+                {% endif %}
+              </a>
+            </th>
+
             <th>Authors</th>
             <th>Genre(s)</th>
-            <th>Publisher</th>
-            <th>Publish Date</th>
           </tr>
         </thead>
         <tbody>
           {% for row in results %}
-            {#
-              SELECT order in app.py:
-              [0] BookID
-              [1] title
-              [2] ean_isbn13
-              [3] upc_isbn10
-              [4] description
-              [5] publisher
-              [6] publish_date
-              [7] Authors
-              [8] Categories
-            #}
             <tr>
-              <td data-label="Title">{{ row[1] }}</td>
-              <td data-label="Description">{{ row[4] or "" }}</td>
-              <td data-label="Authors">{{ row[7] or "" }}</td>
-              <td data-label="Genre(s)">{{ row[8] or "" }}</td>
-              <td data-label="Publisher">{{ row[5] or "" }}</td>
-              <td data-label="Publish Date">{{ row[6] or "" }}</td>
+              <td data-label="Title">{{ row["title"] }}</td>
+              <td data-label="Description">{{ row["description"] or "" }}</td>
+              <td data-label="Publisher">{{ row["publisher"] or "" }}</td>
+              <td data-label="Publish Date">{{ row["publish_date"] or "" }}</td>
+              <td data-label="Authors">{{ row["Authors"] or "" }}</td>
+              <td data-label="Genre(s)">{{ row["Categories"] or "" }}</td>
             </tr>
           {% endfor %}
         </tbody>
