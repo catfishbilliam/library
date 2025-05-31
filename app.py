@@ -1,20 +1,14 @@
 import os
+import sqlite3
 from flask import Flask, render_template, request, redirect, url_for
-import mysql.connector
-from mysql.connector import errorcode
 from dotenv import load_dotenv
 
 # -----------------------------------------------------------------------------
-# 1) Load environment variables from .env
+# 1) Load environment variables from .env (if you have any for SECRET_KEY, etc.)
 # -----------------------------------------------------------------------------
-load_dotenv()  # pip install python-dotenv if you don't already have it
+load_dotenv()
 
-DB_HOST     = os.environ.get("DB_HOST", "localhost")
-DB_PORT     = int(os.environ.get("DB_PORT", 3306))
-DB_USER     = os.environ.get("DB_USER", "root")
-DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
-DB_NAME     = os.environ.get("DB_NAME", "LibraryDB")
-SECRET_KEY  = os.environ.get("SECRET_KEY", "dev_secret_key")  # for Flask session, if needed
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev_secret_key")  # for Flask session, if needed
 
 # -----------------------------------------------------------------------------
 # 2) Create Flask app
@@ -23,28 +17,23 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET_KEY
 
 # -----------------------------------------------------------------------------
-# 3) Initialize a MySQL connection (pooled) on app startup
+# 3) Initialize a SQLite connection on demand
 # -----------------------------------------------------------------------------
 def get_db_connection():
     """
-    Returns a new MySQL connection using mysql.connector.
+    Returns a new SQLite connection to 'library.db'. 
+    If the file does not exist, it will be created when we run initialization.
     """
-    return mysql.connector.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        database=DB_NAME,
-        charset="utf8mb4",
-        use_unicode=True
-    )
+    conn = sqlite3.connect("library.db")
+    conn.row_factory = sqlite3.Row  # So rows behave like dicts
+    return conn
 
 # -----------------------------------------------------------------------------
 # 4) Helper functions to fetch authors & categories (for dropdown lists)
 # -----------------------------------------------------------------------------
 def fetch_all_authors():
     """
-    Returns a list of tuples: (AuthorID, FullName)
+    Returns a list of (AuthorID, FullName) tuples from the Authors table.
     """
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -56,7 +45,7 @@ def fetch_all_authors():
 
 def fetch_all_categories():
     """
-    Returns a list of tuples: (CategoryID, CategoryName)
+    Returns a list of (CategoryID, CategoryName) tuples from the Categories table.
     """
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -85,30 +74,29 @@ def search():
     params = []
 
     if title_query:
-        where_clauses.append("(b.title LIKE %s OR b.description LIKE %s)")
+        where_clauses.append("(b.title LIKE ? OR b.description LIKE ?)")
         like_pattern = f"%{title_query}%"
         params.extend([like_pattern, like_pattern])
 
     if author_id_str.isdigit():
-        where_clauses.append("ba.AuthorID = %s")
+        where_clauses.append("ba.AuthorID = ?")
         params.append(int(author_id_str))
 
     if category_id_str.isdigit():
-        where_clauses.append("bc.CategoryID = %s")
+        where_clauses.append("bc.CategoryID = ?")
         params.append(int(category_id_str))
 
-    # Updated SELECT: remove page_length entirely
     base_query = """
         SELECT 
           b.BookID,
           b.title,
-          b.ean_isbn13,                        -- pull ISBN-13
-          b.upc_isbn10,                        -- pull ISBN-10
-          b.description,                       -- actual description text
+          b.ean_isbn13,                        
+          b.upc_isbn10,                        
+          b.description,                       
           b.publisher,
           b.publish_date,
-          GROUP_CONCAT(DISTINCT a.FullName SEPARATOR ', ')  AS Authors,
-          GROUP_CONCAT(DISTINCT c.CategoryName SEPARATOR ', ') AS Categories
+          GROUP_CONCAT(DISTINCT a.FullName, ', ') AS Authors,
+          GROUP_CONCAT(DISTINCT c.CategoryName, ', ') AS Categories
         FROM Books b
         LEFT JOIN BookAuthors ba ON ba.BookID = b.BookID
         LEFT JOIN Authors a     ON a.AuthorID = ba.AuthorID
@@ -116,7 +104,6 @@ def search():
         LEFT JOIN Categories c      ON c.CategoryID = bc.CategoryID
     """
 
-    # Append WHERE clauses if any filters exist
     if where_clauses:
         sql = base_query + " WHERE " + " AND ".join(where_clauses) + " GROUP BY b.BookID ORDER BY b.title ASC;"
     else:
