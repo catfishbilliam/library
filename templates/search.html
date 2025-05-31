@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <form class="search-form" method="get" action="{{ url_for('search') }}">
+    <div>
+      <label for="title">Title / Keywords</label>
+      <input
+        type="text"
+        name="title"
+        id="title"
+        value="{{ form_data.title }}"
+        placeholder="e.g. American Gods"
+      />
+    </div>
+    <div>
+      <label for="author_id">Author</label>
+      <select name="author_id" id="author_id">
+        <option value="">-- Any --</option>
+        {% for auth in authors %}
+          {% set selected = "selected" if form_data.author_id == auth[0]|string else "" %}
+          <option value="{{ auth[0] }}" {{ selected }}>{{ auth[1] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="category_id">Genre</label>
+      <select name="category_id" id="category_id">
+        <option value="">-- Any --</option>
+        {% for cat in categories %}
+          {% set selected = "selected" if form_data.category_id == cat[0]|string else "" %}
+          <option value="{{ cat[0] }}" {{ selected }}>{{ cat[1] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Centered buttons under the form -->
+    <div class="search-actions" style="justify-content: center; width: 100%; margin-top: 20px;">
+      <button type="submit">Search</button>
+      <a href="{{ url_for('search') }}">Clear</a>
+    </div>
+  </form>
+
+  {% if results %}
+    <div class="results-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Authors</th>
+            <th>Genre(s)</th>
+            <th>Publisher</th>
+            <th>Publish Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in results %}
+            {#
+              SELECT order in app.py:
+              [0] BookID
+              [1] title
+              [2] ean_isbn13
+              [3] upc_isbn10
+              [4] description
+              [5] publisher
+              [6] publish_date
+              [7] Authors
+              [8] Categories
+            #}
+            <tr>
+              <td data-label="Title">{{ row[1] }}</td>
+              <td data-label="Description">{{ row[4] or "" }}</td>
+              <td data-label="Authors">{{ row[7] or "" }}</td>
+              <td data-label="Genre(s)">{{ row[8] or "" }}</td>
+              <td data-label="Publisher">{{ row[5] or "" }}</td>
+              <td data-label="Publish Date">{{ row[6] or "" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% elif form_data.title or form_data.author_id or form_data.category_id %}
+    <p class="no-results">No books matched your criteria.</p>
+  {% endif %}
+{% endblock %}

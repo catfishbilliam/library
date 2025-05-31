@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Library Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- GSAP (no integrity/crossorigin) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+
+    <style>
+      /* ---------- Reset & Base Styles ---------- */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html, body {
+        height: 100%;
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        color: #2c3e50;                    /* dark blue text */
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+
+        /* Full‐screen background image from static/ */
+        background: url("{{ url_for('static', filename='background.png') }}")
+                    no-repeat center center fixed;
+        background-size: cover;
+      }
+      /* Semi‐transparent overlay so content stays legible */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(255, 255, 255, 0.85);
+        z-index: -1;
+      }
+
+      a {
+        text-decoration: none;
+        color: #f1c40f;                    /* bright yellow links */
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+
+      /* ---------- Container ---------- */
+      .container {
+        flex: 1 0 auto;
+        display: flex;
+        flex-direction: column;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* ---------- Header ---------- */
+      header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      /* High‐contrast white box behind the heading */
+      .header-box {
+        display: inline-block;
+        background-color: #ffffff;
+        padding: 20px 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+      header h1 {
+        margin: 0;
+        font-size: 3.5rem;                 /* large text */
+        font-weight: 900;                  /* extra bold */
+        line-height: 1.2;
+
+        /* Gradient‐clipped text */
+        background: linear-gradient(90deg, #1f3a93, #3498db);
+
+        /* STANDARD property first: */
+        background-clip: text;
+        /* Vendor prefix for Safari/WebKit: */
+        -webkit-background-clip: text;
+        /* Preserve transparent fill: */
+        -webkit-text-fill-color: transparent;
+
+        position: relative;
+        display: inline-block;
+      }
+      /* Underline bar below the heading text */
+      header h1::after {
+        content: "";
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 70%;
+        height: 4px;
+        background: linear-gradient(90deg, #1f3a93, #3498db);
+        border-radius: 2px;
+      }
+      /* Slight drop-shadow on the magnifying‐glass icon */
+      header h1 span {
+        margin-right: 8px;
+        filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+      }
+
+      /* ---------- Content Section ---------- */
+      section {
+        flex: 1 0 auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ---------- Search Form ---------- */
+      .search-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        background-color: #ffffff;         /* white card */
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+      }
+      .search-form div {
+        flex: 1 1 250px;
+        display: flex;
+        flex-direction: column;
+      }
+      .search-form label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #34495e;                    /* darker slate-blue */
+      }
+      .search-form input[type="text"],
+      .search-form select {
+        padding: 10px 12px;
+        border: 2px solid #bdc3c7;         /* light gray border */
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: border-color 0.2s ease;
+      }
+      .search-form input[type="text"]:focus,
+      .search-form select:focus {
+        outline: none;
+        border-color: #1f3a93;             /* navy-blue on focus */
+      }
+
+      /* ---------- Buttons Container ---------- */
+      .search-actions {
+        display: flex;
+        justify-content: center;           /* center buttons horizontally */
+        gap: 12px;
+        width: 100%;
+        margin-top: 20px;
+      }
+      .search-actions button {
+        background: linear-gradient(135deg, #3498db, #1f3a93);
+        color: #ffffff;
+        padding: 12px 24px;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        transition: background 0.2s ease, transform 0.1s ease;
+      }
+      .search-actions button:hover {
+        background: linear-gradient(135deg, #1f3a93, #2980b9);
+        transform: translateY(-2px);
+      }
+      .search-actions button:active {
+        transform: translateY(0);
+      }
+      .search-actions a {
+        background-color: #f1c40f;         /* bright yellow button */
+        color: #2c3e50;                    /* dark text on yellow */
+        padding: 12px 24px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        text-align: center;
+      }
+      .search-actions a:hover {
+        background-color: #d4ac0d;         /* deeper yellow hover */
+        transform: translateY(-2px);
+      }
+      .search-actions a:active {
+        transform: translateY(0);
+      }
+
+      /* ---------- Results Table ---------- */
+      .results-wrapper {
+        flex: 1 0 auto;
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #ffffff;         /* white card */
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      }
+      thead {
+        background-color: #1f3a93;         /* navy-blue header */
+        color: #ffffff;                    /* white header text */
+      }
+      th, td {
+        padding: 14px 16px;
+        text-align: left;
+      }
+      th {
+        font-weight: 600;
+        font-size: 1rem;
+      }
+      tr {
+        border-bottom: 1px solid #ecf0f1;  /* very light gray */
+      }
+      tr:last-child {
+        border-bottom: none;
+      }
+      tr:nth-child(even) {
+        background-color: #f0f3f7;         /* pale blue row */
+      }
+      tr:hover {
+        background-color: #d6e3f8;         /* light hover blue */
+      }
+      td {
+        font-size: 0.95rem;
+        color: #4d648d;                    /* muted blue-gray text */
+      }
+
+      /* ---------- No Results Message ---------- */
+      .no-results {
+        margin-top: 20px;
+        font-style: italic;
+        color: #7f8c8d;                    /* slate-gray */
+        text-align: center;
+      }
+
+      /* ---------- Responsive Adjustments ---------- */
+      @media (max-width: 768px) {
+        .search-form {
+          flex-direction: column;
+        }
+        /* Keep buttons side by side; allow wrap if needed */
+        .search-actions {
+          flex-wrap: wrap;
+        }
+        .results-wrapper {
+          display: flex;
+          flex-direction: column;
+        }
+        table, thead, tbody, th, td, tr {
+          display: block;
+        }
+        thead {
+          display: none;
+        }
+        tr {
+          display: flex;
+          flex-direction: column;
+          margin-bottom: 20px;
+          border-bottom: 2px solid #ececec;
+        }
+        td {
+          display: flex;
+          justify-content: space-between;
+          padding: 10px 8px;
+          border: none;
+          border-bottom: 1px solid #e0e4eb;
+        }
+        td:last-child {
+          border-bottom: none;
+        }
+        td::before {
+          font-weight: 600;
+          content: attr(data-label);
+          flex: 1 1 40%;
+          color: #2c3e50;
+        }
+        td span {
+          flex: 1 1 60%;
+          text-align: right;
+          color: #34495e;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <!-- High‐contrast box around the heading -->
+        <div class="header-box">
+          <h1><span>🔍</span>Library Book Search</h1>
+        </div>
+      </header>
+
+      <section>
+        {% block content %}{% endblock %}
+      </section>
+    </div>
+
+    <!-- GSAP fly‐in animation for the header‐box -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        gsap.from(".header-box", {
+          y: -200,
+          opacity: 0,
+          duration: 1.2,
+          ease: "power3.out"
+        });
+      });
+    </script>
+  </body>
+</html>
