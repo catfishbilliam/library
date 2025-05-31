@@ -4,11 +4,10 @@ from flask import Flask, render_template, request, redirect, url_for
 from dotenv import load_dotenv
 
 # -----------------------------------------------------------------------------
-# 1) Load environment variables from .env (if you have any for SECRET_KEY, etc.)
+# 1) Load environment variables from .env (only SECRET_KEY is needed now)
 # -----------------------------------------------------------------------------
 load_dotenv()
-
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev_secret_key")  # for Flask session, if needed
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev_secret_key")
 
 # -----------------------------------------------------------------------------
 # 2) Create Flask app
@@ -17,23 +16,25 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET_KEY
 
 # -----------------------------------------------------------------------------
-# 3) Initialize a SQLite connection on demand
+# 3) Helper to get a SQLite connection (library.db in the same folder)
 # -----------------------------------------------------------------------------
 def get_db_connection():
     """
-    Returns a new SQLite connection to 'library.db'. 
-    If the file does not exist, it will be created when we run initialization.
+    Returns a new SQLite connection to 'library.db' located next to this script.
     """
-    conn = sqlite3.connect("library.db")
-    conn.row_factory = sqlite3.Row  # So rows behave like dicts
+    # Compute path to library.db (assumes this app.py lives in library_webapp/)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(base_dir, "library.db")
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
     return conn
 
 # -----------------------------------------------------------------------------
-# 4) Helper functions to fetch authors & categories (for dropdown lists)
+# 4) Helper functions to fetch authors & categories (for dropdowns)
 # -----------------------------------------------------------------------------
 def fetch_all_authors():
     """
-    Returns a list of (AuthorID, FullName) tuples from the Authors table.
+    Returns a list of (AuthorID, FullName) tuples.
     """
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -45,7 +46,7 @@ def fetch_all_authors():
 
 def fetch_all_categories():
     """
-    Returns a list of (CategoryID, CategoryName) tuples from the Categories table.
+    Returns a list of (CategoryID, CategoryName) tuples.
     """
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -60,16 +61,16 @@ def fetch_all_categories():
 # -----------------------------------------------------------------------------
 @app.route("/search", methods=["GET"])
 def search():
-    # Read GET parameters from the request URL
+    # 5a) Read GET parameters
     title_query     = request.args.get("title", "").strip()
     author_id_str   = request.args.get("author_id", "").strip()
     category_id_str = request.args.get("category_id", "").strip()
 
-    # Fetch dropdown options
+    # 5b) Fetch dropdown data
     authors = fetch_all_authors()
     categories = fetch_all_categories()
 
-    # Build WHERE clauses dynamically
+    # 5c) Build WHERE clauses dynamically
     where_clauses = []
     params = []
 
@@ -86,16 +87,17 @@ def search():
         where_clauses.append("bc.CategoryID = ?")
         params.append(int(category_id_str))
 
+    # 5d) Use SQLite‐compatible GROUP_CONCAT syntax
     base_query = """
-        SELECT 
+        SELECT
           b.BookID,
           b.title,
-          b.ean_isbn13,                        
-          b.upc_isbn10,                        
-          b.description,                       
+          b.ean_isbn13,
+          b.upc_isbn10,
+          b.description,
           b.publisher,
           b.publish_date,
-          GROUP_CONCAT(DISTINCT a.FullName, ', ') AS Authors,
+          GROUP_CONCAT(DISTINCT a.FullName, ', ')    AS Authors,
           GROUP_CONCAT(DISTINCT c.CategoryName, ', ') AS Categories
         FROM Books b
         LEFT JOIN BookAuthors ba ON ba.BookID = b.BookID
@@ -116,7 +118,7 @@ def search():
     print(params)
 
     results = []
-    # Only query if at least one filter is present
+    # Only run query if at least one filter is present
     if title_query or author_id_str.isdigit() or category_id_str.isdigit():
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -139,7 +141,7 @@ def search():
     )
 
 # -----------------------------------------------------------------------------
-# 6) Home route: redirect root URL to /search
+# 6) Redirect root URL to /search
 # -----------------------------------------------------------------------------
 @app.route("/")
 def home():
