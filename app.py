@@ -131,8 +131,10 @@ def search():
             print("SQL:", sql)
             print("PARAMS:", params)
             import traceback; traceback.print_exc()
-            return (f"<h1>Server Error</h1>"
-                    f"<pre>Exception: {type(e).__name__}: {e}\n\n{traceback.format_exc()}</pre>"), 500
+            return (
+                f"<h1>Server Error</h1>"
+                f"<pre>Exception: {type(e).__name__}: {e}\n\n{traceback.format_exc()}</pre>"
+            ), 500
         finally:
             cursor.close()
             conn.close()

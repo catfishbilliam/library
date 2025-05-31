@@ -4,10 +4,6 @@
     <meta charset="utf-8" />
     <title>Library Search</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <!-- GSAP (no integrity/crossorigin) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
-
     <style>
       /* ---------- Reset & Base Styles ---------- */
       * {
@@ -19,24 +15,14 @@
         height: 100%;
         font-family: 'Helvetica Neue', Arial, sans-serif;
         color: #2c3e50;                    /* dark blue text */
+        background-image: url("{{ url_for('static', filename='background.png') }}");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
         line-height: 1.6;
         display: flex;
         flex-direction: column;
-
-        /* Full‐screen background image from static/ */
-        background: url("{{ url_for('static', filename='background.png') }}")
-                    no-repeat center center fixed;
-        background-size: cover;
       }
-      /* Semi‐transparent overlay so content stays legible */
-      body::before {
-        content: "";
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-color: rgba(255, 255, 255, 0.85);
-        z-index: -1;
-      }
-
       a {
         text-decoration: none;
         color: #f1c40f;                    /* bright yellow links */
@@ -58,51 +44,30 @@
       /* ---------- Header ---------- */
       header {
         text-align: center;
-        margin-bottom: 30px;
-      }
-      /* High‐contrast white box behind the heading */
-      .header-box {
-        display: inline-block;
-        background-color: #ffffff;
-        padding: 20px 30px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        margin-bottom: 20px;              /* slightly reduced */
+        position: relative;
+        z-index: 1; /* place above background */
       }
       header h1 {
-        margin: 0;
-        font-size: 3.5rem;                 /* large text */
-        font-weight: 900;                  /* extra bold */
-        line-height: 1.2;
-
-        /* Gradient‐clipped text */
-        background: linear-gradient(90deg, #1f3a93, #3498db);
-
-        /* STANDARD property first: */
-        background-clip: text;
-        /* Vendor prefix for Safari/WebKit: */
-        -webkit-background-clip: text;
-        /* Preserve transparent fill: */
-        -webkit-text-fill-color: transparent;
-
-        position: relative;
+        font-size: 2.8rem;
+        font-weight: 700;
+        color: #1f3a93;                    /* rich navy-blue */
+        background-color: rgba(255, 255, 255, 0.85);
         display: inline-block;
+        padding: 20px 30px;
+        border-radius: 10px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.15);
       }
-      /* Underline bar below the heading text */
-      header h1::after {
-        content: "";
-        position: absolute;
-        bottom: -8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 70%;
-        height: 4px;
-        background: linear-gradient(90deg, #1f3a93, #3498db);
-        border-radius: 2px;
-      }
-      /* Slight drop-shadow on the magnifying‐glass icon */
       header h1 span {
         margin-right: 8px;
-        filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+      }
+      header hr {
+        width: 60%;
+        margin: 12px auto 0;
+        border: none;
+        height: 3px;
+        background: linear-gradient(to right, #1f3a93, #3498db);
+        border-radius: 2px;
       }
 
       /* ---------- Content Section ---------- */
@@ -116,17 +81,21 @@
       .search-form {
         display: flex;
         flex-wrap: wrap;
-        gap: 15px;
+        gap: 10px;                         /* smaller gap */
         background-color: #ffffff;         /* white card */
         border-radius: 10px;
-        padding: 25px;
+        padding: 20px;                     /* reduced padding */
         box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-        margin-bottom: 30px;
+        margin-bottom: 20px;               /* reduced margin */
+        position: relative;
+        z-index: 1;
+        align-items: flex-start;           /* NEW: prevent child divs from stretching */
       }
       .search-form div {
-        flex: 1 1 250px;
+        flex: 1 1 auto;                    /* allow height to shrink to content */
         display: flex;
         flex-direction: column;
+        margin-bottom: 0;                  /* no extra bottom margin */
       }
       .search-form label {
         font-size: 0.9rem;
@@ -136,7 +105,7 @@
       }
       .search-form input[type="text"],
       .search-form select {
-        padding: 10px 12px;
+        padding: 8px 10px;                 /* slightly reduced padding */
         border: 2px solid #bdc3c7;         /* light gray border */
         border-radius: 6px;
         font-size: 1rem;
@@ -148,18 +117,20 @@
         border-color: #1f3a93;             /* navy-blue on focus */
       }
 
-      /* ---------- Buttons Container ---------- */
+      /* Force buttons onto their own full-width row, stacked vertically */
       .search-actions {
+        flex: 0 0 100%;                    /* occupy entire row under fields */
         display: flex;
-        justify-content: center;           /* center buttons horizontally */
-        gap: 12px;
-        width: 100%;
-        margin-top: 20px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        margin-top: 10px;                  /* small space before buttons */
       }
+      /* ---------- Modern Search Button ---------- */
       .search-actions button {
         background: linear-gradient(135deg, #3498db, #1f3a93);
         color: #ffffff;
-        padding: 12px 24px;
+        padding: 8px 16px;
         font-size: 1rem;
         font-weight: 600;
         border: none;
@@ -167,6 +138,7 @@
         cursor: pointer;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         transition: background 0.2s ease, transform 0.1s ease;
+        width: 100%;
       }
       .search-actions button:hover {
         background: linear-gradient(135deg, #1f3a93, #2980b9);
@@ -178,13 +150,13 @@
       .search-actions a {
         background-color: #f1c40f;         /* bright yellow button */
         color: #2c3e50;                    /* dark text on yellow */
-        padding: 12px 24px;
+        padding: 8px 16px;
         font-size: 1rem;
         font-weight: 600;
         border-radius: 8px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         transition: background-color 0.2s ease, transform 0.1s ease;
-        text-align: center;
+        width: 100%;
       }
       .search-actions a:hover {
         background-color: #d4ac0d;         /* deeper yellow hover */
@@ -246,13 +218,28 @@
 
       /* ---------- Responsive Adjustments ---------- */
       @media (max-width: 768px) {
+        /* Stack the form fields in a single column */
         .search-form {
           flex-direction: column;
+          align-items: center;
+          gap: 8px;        /* very tight vertical spacing */
         }
-        /* Keep buttons side by side; allow wrap if needed */
+        .search-form div {
+          margin-bottom: 0;  /* no extra margins between fields */
+        }
+        /* Place buttons on their own row, stacked vertically and full width */
         .search-actions {
-          flex-wrap: wrap;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 8px;
+          margin-top: 8px;   /* small top‐margin on mobile */
         }
+        .search-actions button,
+        .search-actions a {
+          width: 100%;
+          text-align: center;
+        }
+        /* Convert table rows into blocks on mobile */
         .results-wrapper {
           display: flex;
           flex-direction: column;
@@ -296,10 +283,8 @@
   <body>
     <div class="container">
       <header>
-        <!-- High‐contrast box around the heading -->
-        <div class="header-box">
-          <h1><span>🔍</span>Library Book Search</h1>
-        </div>
+        <h1><span>🔍</span>Library Book Search</h1>
+        <hr />
       </header>
 
       <section>
@@ -307,14 +292,23 @@
       </section>
     </div>
 
-    <!-- GSAP fly‐in animation for the header‐box -->
+    <!-- Load GSAP from CDN (omit integrity to avoid mismatch) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
     <script>
+      // Fly in the <h1> on page load
       document.addEventListener("DOMContentLoaded", function() {
-        gsap.from(".header-box", {
-          y: -200,
+        gsap.from("header h1", {
+          y: -80,
           opacity: 0,
           duration: 1.2,
           ease: "power3.out"
+        });
+        gsap.from("header hr", {
+          scaleX: 0,
+          transformOrigin: "left center",
+          duration: 1.0,
+          delay: 1.0,
+          ease: "power2.out"
         });
       });
     </script>
