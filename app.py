@@ -29,7 +29,7 @@ def get_db_connection():
     return conn
 
 # -----------------------------------------------------------------------------
-# 4) Helper functions to fetch authors & categories (for dropdowns)
+# 4) Helper functions to fetch authors & categories (for dropdown lists)
 # -----------------------------------------------------------------------------
 def fetch_all_authors():
     """
@@ -45,11 +45,18 @@ def fetch_all_authors():
 
 def fetch_all_categories():
     """
-    Returns a list of (CategoryID, CategoryName) tuples.
+    Returns a list of (CategoryID, CategoryName) tuples,
+    but only those categories that have at least one linked book.
     """
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT CategoryID, CategoryName FROM Categories ORDER BY CategoryName;")
+    cursor.execute("""
+        SELECT DISTINCT c.CategoryID, c.CategoryName
+          FROM Categories c
+          JOIN BookCategories bc ON c.CategoryID = bc.CategoryID
+          JOIN Books b ON bc.BookID = b.BookID
+         ORDER BY c.CategoryName;
+    """)
     categories = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -60,16 +67,16 @@ def fetch_all_categories():
 # -----------------------------------------------------------------------------
 @app.route("/search", methods=["GET"])
 def search():
-    # 5a) Read GET parameters
+    # Read GET parameters from the request URL
     title_query     = request.args.get("title", "").strip()
     author_id_str   = request.args.get("author_id", "").strip()
     category_id_str = request.args.get("category_id", "").strip()
 
-    # 5b) Fetch dropdown data
-    authors = fetch_all_authors()
+    # Fetch dropdown options
+    authors    = fetch_all_authors()
     categories = fetch_all_categories()
 
-    # 5c) Build WHERE clauses dynamically
+    # Build WHERE clauses dynamically
     where_clauses = []
     params = []
 
@@ -86,7 +93,7 @@ def search():
         where_clauses.append("bc.CategoryID = ?")
         params.append(int(category_id_str))
 
-    # 5d) Use SQLite-compatible GROUP_CONCAT syntax (no custom separator with DISTINCT)
+    # Use SQLite-compatible GROUP_CONCAT syntax (distinct without custom separator)
     base_query = """
         SELECT
           b.BookID,
@@ -106,7 +113,11 @@ def search():
     """
 
     if where_clauses:
-        sql = base_query + " WHERE " + " AND ".join(where_clauses) + " GROUP BY b.BookID ORDER BY b.title ASC;"
+        sql = (
+            base_query
+            + " WHERE " + " AND ".join(where_clauses)
+            + " GROUP BY b.BookID ORDER BY b.title ASC;"
+        )
     else:
         sql = base_query + " GROUP BY b.BookID ORDER BY b.title ASC;"
 
