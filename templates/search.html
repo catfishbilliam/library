@@ -16,7 +16,7 @@
     method="get"
     action="{{ url_for('search') }}"
   >
-    <!-- Title / Keywords -->
+    <!-- ─── Title / Keywords ─── -->
     <div class="flex flex-col sm:flex-row sm:space-x-4">
       <label for="title" class="w-full sm:w-1/4 font-semibold text-textDark">
         Title / Keywords
@@ -27,11 +27,11 @@
         id="title"
         value="{{ form_data.title }}"
         placeholder="Enter search terms…"
-        class="w-full sm:w-3/4 border-2 border-mist rounded-lg px-3 py-2 focus:border-secondary focus:outline-none"
+        class="w-full sm:w-3/4 border-2 border-gray-300 rounded-lg px-3 py-2 focus:border-secondary focus:outline-none"
       />
     </div>
 
-    <!-- Author / Genre -->
+    <!-- ─── Author / Genre ─── -->
     <div class="flex flex-col sm:flex-row sm:space-x-4">
       <label for="author_id" class="w-full sm:w-1/4 font-semibold text-textDark">
         Author
@@ -39,7 +39,7 @@
       <select
         name="author_id"
         id="author_id"
-        class="w-full sm:w-1/4 border-2 border-mist rounded-lg px-3 py-2 focus:border-secondary focus:outline-none"
+        class="w-full sm:w-1/4 border-2 border-gray-300 rounded-lg px-3 py-2 focus:border-secondary focus:outline-none"
       >
         <option value="">-- Any --</option>
         {% for auth in authors %}
@@ -54,7 +54,7 @@
       <select
         name="category_id"
         id="category_id"
-        class="w-full sm:w-1/4 border-2 border-mist rounded-lg px-3 py-2 focus:border-secondary focus:outline-none"
+        class="w-full sm:w-1/4 border-2 border-gray-300 rounded-lg px-3 py-2 focus:border-secondary focus:outline-none"
       >
         <option value="">-- Any --</option>
         {% for cat in categories %}
@@ -64,7 +64,7 @@
       </select>
     </div>
 
-    <!-- NLP “I’m feeling…” field -->
+    <!-- ─── NLP “I’m feeling…” field ─── -->
     <div class="flex flex-col sm:flex-row sm:space-x-4">
       <label for="nlp" class="w-full sm:w-1/4 font-semibold text-textDark">
         I’m feeling or looking for…
@@ -75,17 +75,18 @@
         id="nlp"
         value="{{ form_data.nlp }}"
         placeholder="e.g. ‘something uplifting about space exploration’"
-        class="w-full sm:w-3/4 border-2 border-mist rounded-lg px-3 py-2 focus:border-secondary focus:outline-none"
+        class="w-full sm:w-3/4 border-2 border-gray-300 rounded-lg px-3 py-2 focus:border-secondary focus:outline-none"
       />
     </div>
 
-    <!-- Buttons Row -->
+    <!-- ─── Buttons Row ─── -->
     <div class="flex flex-col sm:flex-row sm:space-x-4 justify-center mt-6">
+      <!-- Search Button -->
       <button
         type="submit"
         class="
-          bg-mystic
-          hover:bg-secondary
+          bg-mystic   /* replace with your custom 'mystic' class if defined, otherwise use 'bg-secondary' */
+          hover:bg-primary
           text-white
           font-semibold
           rounded-lg
@@ -97,6 +98,8 @@
       >
         Search
       </button>
+
+      <!-- Add New Book -->
       <a
         href="{{ url_for('add') }}"
         class="
@@ -117,11 +120,13 @@
         <span class="text-xl leading-none">➕</span>
         <span>Add New Book</span>
       </a>
+
+      <!-- Clear Button -->
       <a
         href="{{ url_for('search') }}"
         class="
           bg-accent
-          hover:bg-[#d4ac0d]
+          hover:bg-yellow-500
           text-textDark
           font-semibold
           rounded-lg
@@ -136,7 +141,7 @@
       </a>
     </div>
 
-    <!-- Hidden fields to preserve state -->
+    <!-- ─── Hidden fields to preserve state ─── -->
     <input type="hidden" name="sort_by"  value="{{ form_data.sort_by }}" />
     <input type="hidden" name="sort_dir" value="{{ form_data.sort_dir }}" />
     <input type="hidden" name="nlp"      value="{{ form_data.nlp }}" />
@@ -150,21 +155,19 @@
             {% set toggle_dir = "asc" if form_data.sort_dir == "desc" else "desc" %}
             <th class="px-6 py-3 text-left font-semibold">
               <a
-                href="{{
-                  url_for(
-                    'search',
-                    title=form_data.title,
-                    author_id=form_data.author_id,
-                    category_id=form_data.category_id,
-                    nlp=form_data.nlp,
-                    sort_by='title',
-                    sort_dir=( 'asc'
-                                if form_data.sort_by != 'title'
-                                  or form_data.sort_dir == 'desc'
-                                else 'desc'
-                              )
-                  )
-                }}"
+                href="{{ url_for(
+                          'search',
+                          title=form_data.title,
+                          author_id=form_data.author_id,
+                          category_id=form_data.category_id,
+                          nlp=form_data.nlp,
+                          sort_by='title',
+                          sort_dir=( 'asc'
+                                      if form_data.sort_by != 'title'
+                                        or form_data.sort_dir == 'desc'
+                                      else 'desc'
+                                    )
+                        ) }}"
               >
                 Title
                 {% if form_data.sort_by == 'title' %}
@@ -174,21 +177,19 @@
             </th>
             <th class="px-6 py-3 text-left font-semibold">
               <a
-                href="{{
-                  url_for(
-                    'search',
-                    title=form_data.title,
-                    author_id=form_data.author_id,
-                    category_id=form_data.category_id,
-                    nlp=form_data.nlp,
-                    sort_by='description',
-                    sort_dir=( 'asc'
-                                if form_data.sort_by != 'description'
-                                  or form_data.sort_dir == 'desc'
-                                else 'desc'
-                              )
-                  )
-                }}"
+                href="{{ url_for(
+                          'search',
+                          title=form_data.title,
+                          author_id=form_data.author_id,
+                          category_id=form_data.category_id,
+                          nlp=form_data.nlp,
+                          sort_by='description',
+                          sort_dir=( 'asc'
+                                      if form_data.sort_by != 'description'
+                                        or form_data.sort_dir == 'desc'
+                                      else 'desc'
+                                    )
+                        ) }}"
               >
                 Description
                 {% if form_data.sort_by == 'description' %}
@@ -198,21 +199,19 @@
             </th>
             <th class="px-6 py-3 text-left font-semibold">
               <a
-                href="{{
-                  url_for(
-                    'search',
-                    title=form_data.title,
-                    author_id=form_data.author_id,
-                    category_id=form_data.category_id,
-                    nlp=form_data.nlp,
-                    sort_by='publisher',
-                    sort_dir=( 'asc'
-                                if form_data.sort_by != 'publisher'
-                                  or form_data.sort_dir == 'desc'
-                                else 'desc'
-                              )
-                  )
-                }}"
+                href="{{ url_for(
+                          'search',
+                          title=form_data.title,
+                          author_id=form_data.author_id,
+                          category_id=form_data.category_id,
+                          nlp=form_data.nlp,
+                          sort_by='publisher',
+                          sort_dir=( 'asc'
+                                      if form_data.sort_by != 'publisher'
+                                        or form_data.sort_dir == 'desc'
+                                      else 'desc'
+                                    )
+                        ) }}"
               >
                 Publisher
                 {% if form_data.sort_by == 'publisher' %}
@@ -222,21 +221,19 @@
             </th>
             <th class="px-6 py-3 text-left font-semibold">
               <a
-                href="{{
-                  url_for(
-                    'search',
-                    title=form_data.title,
-                    author_id=form_data.author_id,
-                    category_id=form_data.category_id,
-                    nlp=form_data.nlp,
-                    sort_by='publish_date',
-                    sort_dir=( 'asc'
-                                if form_data.sort_by != 'publish_date'
-                                  or form_data.sort_dir == 'desc'
-                                else 'desc'
-                              )
-                  )
-                }}"
+                href="{{ url_for(
+                          'search',
+                          title=form_data.title,
+                          author_id=form_data.author_id,
+                          category_id=form_data.category_id,
+                          nlp=form_data.nlp,
+                          sort_by='publish_date',
+                          sort_dir=( 'asc'
+                                      if form_data.sort_by != 'publish_date'
+                                        or form_data.sort_dir == 'desc'
+                                      else 'desc'
+                                    )
+                        ) }}"
               >
                 Publish Date
                 {% if form_data.sort_by == 'publish_date' %}
@@ -250,7 +247,7 @@
         </thead>
         <tbody>
           {% for row in results %}
-            <tr class="border-b last:border-none hover:bg-mist">
+            <tr class="border-b last:border-none hover:bg-gray-100">
               <td class="px-6 py-4" data-label="Title">{{ row.title }}</td>
               <td class="px-6 py-4 text-textMedium" data-label="Description">
                 {{ row.description or '' }}
