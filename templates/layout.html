@@ -4,342 +4,89 @@
     <meta charset="utf-8" />
     <title>Conway-Harris Library</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Modern Font and UI Reset -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <style>
-      /* ---------- Reset & Base Styles ---------- */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html, body {
-        height: 100%;
-        font-family: 'Roboto Condensed', sans-serif;
-        color: #2c3e50;                    /* dark blue text */
-        background-image: url("{{ url_for('static', filename='background.png') }}");
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        line-height: 1.6;
-        display: flex;
-        flex-direction: column;
-      }
-      a {
-        text-decoration: none;
-        color: #f1c40f;                    /* bright yellow links */
-      }
-      a:hover {
-        text-decoration: underline;
-      }
+    <link
+      href="https://cdn.jsdelivr.net/npm/@unocss/reset/normalize.min.css"
+      rel="stylesheet"
+    />
 
-      /* ---------- Container ---------- */
-      .container {
-        flex: 1 0 auto;
-        display: flex;
-        flex-direction: column;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-      }
+    <!-- Load Tailwind (CDN) first -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-      /* ---------- Header ---------- */
-      header {
-        text-align: center;
-        margin-bottom: 20px;              /* slightly reduced */
-        position: relative;
-        z-index: 1;                        /* place above background */
-      }
-      header h1 {
-        font-size: 2.8rem;
-        font-weight: 700;
-        color: #1f3a93;                    /* rich navy-blue */
-        background-color: rgba(255, 255, 255, 0.85);
-        display: inline-block;
-        padding: 20px 30px;
-        border-radius: 10px;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-      }
-      header h1 span {
-        margin-right: 8px;
-      }
-      header hr {
-        width: 60%;
-        margin: 12px auto 0;
-        border: none;
-        height: 3px;
-        background: linear-gradient(to right, #1f3a93, #3498db);
-        border-radius: 2px;
-      }
-
-      /* ---------- Content Section ---------- */
-      section {
-        flex: 1 0 auto;
-        display: flex;
-        flex-direction: column;
-      }
-
-      /* ---------- Search Form ---------- */
-      .search-form {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;                         /* smaller gap */
-        background-color: #ffffff;         /* white card */
-        border-radius: 10px;
-        padding: 20px;                     /* reduced padding */
-        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-        margin-bottom: 20px;               /* reduced margin */
-        position: relative;
-        z-index: 1;
-        align-items: flex-start;           /* prevent child divs from stretching */
-      }
-      .search-form div {
-        flex: 1 1 auto;                    /* allow height to shrink to content */
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 0;                  /* no extra bottom margin */
-      }
-      .search-form label {
-        text-align: center;
-        font-size: 0.9rem;
-        font-weight: 600;
-        margin-bottom: 6px;
-        color: #34495e;                    /* darker slate-blue */
-      }
-      .search-form input[type="text"],
-      .search-form select {
-        padding: 8px 10px;                 /* slightly reduced padding */
-        border: 2px solid #bdc3c7;         /* light gray border */
-        border-radius: 6px;
-        font-size: 1rem;
-        transition: border-color 0.2s ease;
-      }
-      .search-form input[type="text"]:focus,
-      .search-form select:focus {
-        outline: none;
-        border-color: #1f3a93;             /* navy-blue on focus */
-      }
-
-      /* ---------- Button Row (Add/Search/Clear) ---------- */
-      .button-row {
-        flex: 0 0 100%;
-        display: flex;
-        flex-direction: column;            /* always stack vertically */
-        justify-items: center;
-        align-items: center;
-        gap: 10px;
-        margin-top: 12px;
-      }
-      /* Individual button classes */
-      .btn-add {
-        background: linear-gradient(135deg, #3498db, #1f3a93);
-        color: #ffffff;
-        padding: 10px 20px;
-        font-size: 1rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        transition: background 0.2s ease, transform 0.1s ease;
-        width: 25%;
-        text-align: center;
-      }
-      .btn-add:hover {
-        background: linear-gradient(135deg, #1f3a93, #2980b9);
-        transform: translateY(-1px);
-      }
-      .btn-add:active {
-        transform: translateY(0);
-      }
-
-      .btn-search {
-        background: linear-gradient(135deg, #44c767, #389e5f); /* green gradient */
-        color: #ffffff;
-        padding: 10px 20px;
-        font-size: 1rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        transition: background 0.2s ease, transform 0.1s ease;
-        width: 25%;
-        text-align: center;
-      }
-      .btn-search:hover {
-        background: linear-gradient(135deg, #389e5f, #2f8051);
-        transform: translateY(-1px);
-      }
-      .btn-search:active {
-        transform: translateY(0);
-      }
-
-      .btn-clear {
-        background-color: #f1c40f;         /* bright yellow */
-        color: #2c3e50;
-        padding: 10px 20px;
-        font-size: 1rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        transition: background-color 0.2s ease, transform 0.1s ease;
-        width: 25%;
-        text-align: center;
-      }
-      .btn-clear:hover {
-        background-color: #d4ac0d;         /* deeper yellow */
-        transform: translateY(-1px);
-      }
-      .btn-clear:active {
-        transform: translateY(0);
-      }
-
-      /* ---------- Results Table ---------- */
-      .results-wrapper {
-        flex: 1 0 auto;
-        overflow-x: auto;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background-color: #ffffff;         /* white card */
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-      }
-      thead {
-        background-color: #1f3a93;         /* navy-blue header */
-        color: #ffffff;                    /* white header text */
-      }
-      th, td {
-        padding: 14px 16px;
-        text-align: left;
-      }
-      th {
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;                   /* if you plan to allow click‐to‐sort */
-      }
-      tr {
-        border-bottom: 1px solid #ecf0f1;  /* very light gray */
-      }
-      tr:last-child {
-        border-bottom: none;
-      }
-      tr:nth-child(even) {
-        background-color: #f0f3f7;         /* pale blue row */
-      }
-      tr:hover {
-        background-color: #d6e3f8;         /* light hover blue */
-      }
-      td {
-        font-size: 0.95rem;
-        color: #4d648d;                    /* muted blue-gray text */
-      }
-
-      /* ---------- No Results Message ---------- */
-      .no-results {
-        margin-top: 20px;
-        font-style: italic;
-        color: #7f8c8d;                    /* slate-gray */
-        text-align: center;
-      }
-
-      /* ---------- Responsive Adjustments ---------- */
-      @media (max-width: 768px) {
-        /* Stack the form fields in a single column */
-        .search-form {
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;        /* very tight vertical spacing */
+    <!-- Then override/extend its default config -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#1f3a93',       /* Deep navy */
+              secondary: '#3498db',     /* Bright blue */
+              accent: '#f1c40f',        /* Gold */
+              bgLight: '#f9fafb',       /* Light gray */
+              textDark: '#2c3e50',      /* Dark slate */
+              textMedium: '#4d648d',    /* Medium gray-blue */
+              mystic: '#6B21A8',         /* Rich purple */
+              ether: '#A78BFA',          /* Soft lavender */
+              aura: '#22D3EE'           /* Aqua teal */
+            },
+            fontFamily: {
+              sans: ['Poppins', 'sans-serif']
+            }
+          }
         }
-        .search-form div {
-          margin-bottom: 0;  /* no extra margins between fields */
-        }
-        /* button-row is already column‐oriented above */
-        .button-row .btn-add,
-        .button-row .btn-search,
-        .button-row .btn-clear {
-          width: 100%;
-          text-align: center;
-        }
-
-        /* Convert table rows into blocks on mobile */
-        .results-wrapper {
-          display: flex;
-          flex-direction: column;
-        }
-        table, thead, tbody, th, td, tr {
-          display: block;
-        }
-        thead {
-          display: none;
-        }
-        tr {
-          display: flex;
-          flex-direction: column;
-          margin-bottom: 20px;
-          border-bottom: 2px solid #ececec;
-        }
-        td {
-          display: flex;
-          justify-content: space-between;
-          padding: 10px 8px;
-          border: none;
-          border-bottom: 1px solid #e0e4eb;
-        }
-        td:last-child {
-          border-bottom: none;
-        }
-        td::before {
-          font-weight: 600;
-          content: attr(data-label);
-          flex: 1 1 40%;
-          color: #2c3e50;
-        }
-        td span {
-          flex: 1 1 60%;
-          text-align: right;
-          color: #34495e;
-        }
-      }
-    </style>
+      };
+    </script>
   </head>
-  <body>
-    <div class="container">
-      <header>
-        <h1><span>🔍</span>Search the Library</h1>
-        <hr />
+
+  <body class="min-h-screen bg-gradient-to-br from-mystic to-secondary text-textDark font-sans">
+    <div class="max-w-6xl mx-auto px-4 py-8 flex flex-col min-h-screen">
+
+      <!-- Header -->
+      <header class="mb-8 text-center">
+        <h1
+          class="text-4xl font-bold bg-white/80 inline-block px-6 py-4 rounded-xl shadow-md text-mystic"
+        >
+          <span class="mr-2">📚</span> Conway-Harris Library
+        </h1>
+        <div class="w-2/3 mx-auto mt-3 h-1 bg-gradient-to-r from-ether to-mystic rounded-full"></div>
       </header>
 
-      <section>
-        {% block content %}{% endblock %}
-      </section>
-    </div>
+      <!-- Main Content: Centered -->
+      <main class="flex-1 flex items-center justify-center">
+        <div class="w-full">
+          {% block content %}{% endblock %}
+        </div>
+      </main>
 
-    <!-- Load GSAP from CDN (omit integrity to avoid mismatch) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
-    <script>
-      // Fly in the <h1> on page load
-      document.addEventListener("DOMContentLoaded", function() {
-        gsap.from("header h1", {
-          y: -80,
-          opacity: 0,
-          duration: 1.2,
-          ease: "power3.out"
+      <!-- Footer -->
+      <footer class="bg-white text-center text-sm text-textMedium py-4 rounded-t-lg shadow-inner">
+        &copy; {{ year or "2025" }} Conway-Harris Library. All rights reserved.
+      </footer>
+
+      <!-- GSAP Header Animation -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+      <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          gsap.from("header h1", {
+            y: -60,
+            opacity: 0,
+            duration: 1,
+            ease: "power3.out"
+          });
+          gsap.from("header div", {
+            scaleX: 0,
+            transformOrigin: "left center",
+            duration: 1.2,
+            delay: 0.8,
+            ease: "power2.out"
+          });
         });
-        gsap.from("header hr", {
-          scaleX: 0,
-          transformOrigin: "left center",
-          duration: 1.0,
-          delay: 1.0,
-          ease: "power2.out"
-        });
-      });
-    </script>
+      </script>
+    </div>
   </body>
 </html>
