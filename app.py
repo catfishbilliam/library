@@ -26,7 +26,7 @@ def get_db_connection():
     Opens a new SQLite3 connection and returns it.
     """
     conn = sqlite3.connect(DB_FILE)
-    # Return rows as dictionaries (if you prefer), or you can fetch as tuples.
+    # Return rows as dictionaries (optional)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -38,23 +38,29 @@ def fetch_all_authors():
     Returns a list of tuples: (AuthorID, FullName) sorted by FullName.
     """
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT AuthorID, FullName FROM Authors ORDER BY FullName;")
-    rows = cursor.fetchall()
-    cursor.close()
+    cur = conn.cursor()
+    cur.execute("SELECT AuthorID, FullName FROM Authors ORDER BY FullName;")
+    rows = cur.fetchall()
+    cur.close()
     conn.close()
-    # Convert sqlite3.Row to simple tuples
     return [(row["AuthorID"], row["FullName"]) for row in rows]
 
 def fetch_all_categories():
     """
-    Returns a list of tuples: (CategoryID, CategoryName) sorted by CategoryName.
+    Returns a list of tuples: (CategoryID, CategoryName) sorted by CategoryName,
+    but only those categories which have at least one book assigned.
     """
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT CategoryID, CategoryName FROM Categories ORDER BY CategoryName;")
-    rows = cursor.fetchall()
-    cursor.close()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT c.CategoryID, c.CategoryName
+          FROM Categories c
+          JOIN BookCategories bc ON bc.CategoryID = c.CategoryID
+         GROUP BY c.CategoryID
+         ORDER BY c.CategoryName;
+    """)
+    rows = cur.fetchall()
+    cur.close()
     conn.close()
     return [(row["CategoryID"], row["CategoryName"]) for row in rows]
 
@@ -67,14 +73,14 @@ def search():
     title_query     = request.args.get("title", "").strip()
     author_id_str   = request.args.get("author_id", "").strip()
     category_id_str = request.args.get("category_id", "").strip()
-    sort_by         = request.args.get("sort_by", "").strip()
-    sort_dir        = request.args.get("sort_dir", "asc").strip().lower()
+    sort_by         = request.args.get("sort_by",   "").strip()
+    sort_dir        = request.args.get("sort_dir",  "").strip().lower()  # expect "asc" or "desc"
 
     # Fetch dropdown options
     authors    = fetch_all_authors()
     categories = fetch_all_categories()
 
-    # Build dynamic WHERE clauses
+    # Build WHERE clauses dynamically
     where_clauses = []
     params        = []
 
@@ -91,40 +97,42 @@ def search():
         where_clauses.append("bc.CategoryID = ?")
         params.append(int(category_id_str))
 
-    # Base SELECT (note: using SQLite‐compatible GROUP_CONCAT here)
+    # Base SELECT: use SQLite‐compatible GROUP_CONCAT syntax (only one argument when using DISTINCT)
     base_query = """
         SELECT 
-          b.BookID,
-          b.title,
-          b.ean_isbn13,
-          b.upc_isbn10,
-          b.description,
-          b.publisher,
-          b.publish_date,
-          GROUP_CONCAT(DISTINCT a.FullName)  AS Authors,
-          GROUP_CONCAT(DISTINCT c.CategoryName) AS Categories
+            b.BookID,
+            b.title,
+            b.ean_isbn13,
+            b.upc_isbn10,
+            b.description,
+            b.publisher,
+            b.publish_date,
+            GROUP_CONCAT(DISTINCT a.FullName)       AS Authors,
+            GROUP_CONCAT(DISTINCT c.CategoryName)   AS Categories
         FROM Books b
-        LEFT JOIN BookAuthors ba ON ba.BookID = b.BookID
-        LEFT JOIN Authors a     ON a.AuthorID = ba.AuthorID
-        LEFT JOIN BookCategories bc ON bc.BookID = b.BookID
-        LEFT JOIN Categories c      ON c.CategoryID = bc.CategoryID
+        LEFT JOIN BookAuthors ba       ON ba.BookID = b.BookID
+        LEFT JOIN Authors a           ON a.AuthorID = ba.AuthorID
+        LEFT JOIN BookCategories bc   ON bc.BookID = b.BookID
+        LEFT JOIN Categories c        ON c.CategoryID = bc.CategoryID
     """
 
-    # If any filters exist, append them:
+    # Decide on ORDER BY clause
+    # Allow only certain columns to be sorted on; default to title ASC if no valid sort
+    valid_sort_columns = {"title", "description", "publisher", "publish_date"}
+    if sort_by not in valid_sort_columns:
+        sort_by = "title"
+    if sort_dir not in {"asc", "desc"}:
+        sort_dir = "asc"
+
+    # Append WHERE and GROUP BY and ORDER BY
     if where_clauses:
         sql = (
             base_query
             + " WHERE " + " AND ".join(where_clauses)
-            + " GROUP BY b.BookID"
+            + f" GROUP BY b.BookID ORDER BY b.{sort_by} {sort_dir.upper()};"
         )
     else:
-        sql = base_query + " GROUP BY b.BookID"
-
-    # Append ORDER BY clause. Default to title ASC if nothing else:
-    if sort_by in ("title", "description", "publisher", "publish_date") and sort_dir in ("asc", "desc"):
-        sql += f" ORDER BY b.{sort_by} {sort_dir.upper()};"
-    else:
-        sql += " ORDER BY b.title ASC;"
+        sql = base_query + f" GROUP BY b.BookID ORDER BY b.{sort_by} {sort_dir.upper()};"
 
     # === Debug: print SQL & params to console (optional) ===
     print("=== DEBUG SQL ===")
@@ -133,15 +141,13 @@ def search():
     print(params)
 
     results = []
-    # Only query if at least one filter is present (or you could always run it,
-    # but we follow your existing logic)
+    # Only query if at least one filter or sorting is present
     if title_query or author_id_str.isdigit() or category_id_str.isdigit():
         conn   = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(sql, params)
         fetched = cursor.fetchall()
-        # Convert Row objects to dicts or tuples as you like. Here, we'll send them to Jinja as dicts:
-        results = [dict(row) for row in fetched]
+        results = [dict(row) for row in fetched]  # Convert Row to dict
         print("=== DEBUG RESULTS ROWCOUNT ===", len(results))
         cursor.close()
         conn.close()
@@ -152,11 +158,11 @@ def search():
         categories=categories,
         results=results,
         form_data={
-            "title":        title_query,
-            "author_id":    author_id_str,
-            "category_id":  category_id_str,
-            "sort_by":      sort_by,
-            "sort_dir":     sort_dir,
+            "title":       title_query,
+            "author_id":   author_id_str,
+            "category_id": category_id_str,
+            "sort_by":     sort_by,
+            "sort_dir":    sort_dir
         }
     )
 
@@ -165,6 +171,7 @@ def search():
 # -----------------------------------------------------------------------------
 @app.route("/add", methods=["GET", "POST"])
 def add():
+    # Fetch dropdown options (authors + categories)
     authors    = fetch_all_authors()
     categories = fetch_all_categories()
 
