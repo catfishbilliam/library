@@ -2,13 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Conway-Harris Library</title>
+    <title>Library Search</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Favicons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
-    <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}" />
+    <link
+    href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600;700&display=swap"
+    rel="stylesheet"
+    />
     <style>
       /* ---------- Reset & Base Styles ---------- */
       * {
@@ -18,7 +17,7 @@
       }
       html, body {
         height: 100%;
-        font-family: 'Helvetica Neue', Arial, sans-serif;
+        font-family: 'Roboto Condensed', sans-serif;
         color: #2c3e50;                    /* dark blue text */
         background-image: url("{{ url_for('static', filename='background.png') }}");
         background-size: cover;
@@ -27,7 +26,7 @@
         line-height: 1.6;
         display: flex;
         flex-direction: column;
-      }
+        }
       a {
         text-decoration: none;
         color: #f1c40f;                    /* bright yellow links */
@@ -51,7 +50,7 @@
         text-align: center;
         margin-bottom: 20px;              /* slightly reduced */
         position: relative;
-        z-index: 1; /* place above background */
+        z-index: 1;                        /* place above background */
       }
       header h1 {
         font-size: 2.8rem;
@@ -94,7 +93,7 @@
         margin-bottom: 20px;               /* reduced margin */
         position: relative;
         z-index: 1;
-        align-items: flex-start;           /* NEW: prevent child divs from stretching */
+        align-items: flex-start;           /* prevent child divs from stretching */
       }
       .search-form div {
         flex: 1 1 auto;                    /* allow height to shrink to content */
@@ -103,6 +102,7 @@
         margin-bottom: 0;                  /* no extra bottom margin */
       }
       .search-form label {
+        text-align: center;
         font-size: 0.9rem;
         font-weight: 600;
         margin-bottom: 6px;
@@ -122,20 +122,19 @@
         border-color: #1f3a93;             /* navy-blue on focus */
       }
 
-      /* Force buttons onto their own full-width row, stacked vertically */
-      .search-actions {
-        flex: 0 0 100%;                    /* occupy entire row under fields */
+      /* ---------- Button Row (Add/Search/Clear) ---------- */
+      .button-row {
+        flex: 0 0 100%;
         display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-        margin-top: 10px;                  /* small space before buttons */
+        flex-direction: column;            /* always stack vertically */
+        gap: 10px;
+        margin-top: 12px;
       }
-      /* ---------- Modern Search Button ---------- */
-      .search-actions button {
+      /* Individual button classes */
+      .btn-add {
         background: linear-gradient(135deg, #3498db, #1f3a93);
         color: #ffffff;
-        padding: 8px 16px;
+        padding: 10px 20px;
         font-size: 1rem;
         font-weight: 600;
         border: none;
@@ -143,31 +142,51 @@
         cursor: pointer;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         transition: background 0.2s ease, transform 0.1s ease;
-        width: 100%;
       }
-      .search-actions button:hover {
+      .btn-add:hover {
         background: linear-gradient(135deg, #1f3a93, #2980b9);
-        transform: translateY(-2px);
-      }
-      .search-actions button:active {
+        transform: translateY(-1px);
+        }
+      .btn-add:active {
         transform: translateY(0);
       }
-      .search-actions a {
-        background-color: #f1c40f;         /* bright yellow button */
-        color: #2c3e50;                    /* dark text on yellow */
-        padding: 8px 16px;
+
+      .btn-search {
+        background: linear-gradient(135deg, #44c767, #389e5f); /* same green gradient */
+        color: #ffffff;
+        padding: 10px 20px;
         font-size: 1rem;
         font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        transition: background 0.2s ease, transform 0.1s ease;
+      }
+      .btn-search:hover {
+        background: linear-gradient(135deg, #389e5f, #2f8051);
+        transform: translateY(-1px);
+      }
+      .btn-search:active {
+        transform: translateY(0);
+      }
+
+      .btn-clear {
+        background-color: #f1c40f;         /* bright yellow */
+        color: #2c3e50;
+        padding: 10px 20px;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
         border-radius: 8px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         transition: background-color 0.2s ease, transform 0.1s ease;
-        width: 100%;
       }
-      .search-actions a:hover {
-        background-color: #d4ac0d;         /* deeper yellow hover */
-        transform: translateY(-2px);
+      .btn-clear:hover {
+        background-color: #d4ac0d;         /* deeper yellow */
+        transform: translateY(-1px);
       }
-      .search-actions a:active {
+      .btn-clear:active {
         transform: translateY(0);
       }
 
@@ -195,6 +214,7 @@
       th {
         font-weight: 600;
         font-size: 1rem;
+        cursor: pointer;                   /* if you plan to allow click‐to‐sort */
       }
       tr {
         border-bottom: 1px solid #ecf0f1;  /* very light gray */
@@ -232,18 +252,14 @@
         .search-form div {
           margin-bottom: 0;  /* no extra margins between fields */
         }
-        /* Place buttons on their own row, stacked vertically and full width */
-        .search-actions {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 8px;
-          margin-top: 8px;   /* small top‐margin on mobile */
-        }
-        .search-actions button,
-        .search-actions a {
+        /* .button-row is already column-oriented above */
+        .button-row .btn-add,
+        .button-row .btn-search,
+        .button-row .btn-clear {
           width: 100%;
           text-align: center;
         }
+
         /* Convert table rows into blocks on mobile */
         .results-wrapper {
           display: flex;
@@ -288,7 +304,7 @@
   <body>
     <div class="container">
       <header>
-        <h1><span>🔍</span>Search the Library</h1>
+        <h1><span>🔍</span>Library Book Search</h1>
         <hr />
       </header>
 

@@ -2,6 +2,7 @@
 
 {% block content %}
   <form class="search-form" method="get" action="{{ url_for('search') }}">
+    <!-- ─── Form Fields: Title / Author / Genre ─── -->
     <div>
       <label for="title">Title / Keywords</label>
       <input
@@ -9,7 +10,7 @@
         name="title"
         id="title"
         value="{{ form_data.title }}"
-        placeholder="e.g. American Gods"
+        placeholder="Enter search terms..."
       />
     </div>
     <div>
@@ -33,15 +34,29 @@
       </select>
     </div>
 
-    <!-- Hidden inputs to preserve sort state -->
-    <input type="hidden" name="sort_by" value="{{ form_data.sort_by }}">
-    <input type="hidden" name="sort_dir" value="{{ form_data.sort_dir }}">
+    <!-- ─── All Buttons (Add / Search / Clear) in one "button-row" ─── -->
+    <div class="button-row">
 
-    <!-- Centered buttons under the form -->
-    <div class="search-actions">
-      <button type="submit">Search</button>
-      <a href="{{ url_for('search') }}">Clear</a>
+      <!-- Search Button -->
+      <button type="submit" class="btn-search">Search</button>
+
+      <!-- Add New Book -->
+      <a
+        href="{{ url_for('add') }}"
+        class="btn-add"
+        style="display: inline-flex; align-items: center; gap: 6px;"
+      >
+        <span style="font-size: 1.2rem; line-height: 1;">➕</span>
+        <span>Add New Book</span>
+      </a>
+
+      <!-- Clear Button -->
+      <a href="{{ url_for('search') }}" class="btn-clear">Clear</a>
     </div>
+
+    <!-- ─── Hidden inputs (preserve sort state if used) ─── -->
+    <input type="hidden" name="sort_by"  value="{{ form_data.sort_by }}">
+    <input type="hidden" name="sort_dir" value="{{ form_data.sort_dir }}">
   </form>
 
   {% if results %}
@@ -50,22 +65,25 @@
         <thead>
           <tr>
             {#  
-               Each <th> is now a link that re‐fires the same /search?q=.. 
-               but toggles sort_by and sort_dir accordingly.
+              Each <th> is a link that re‐fires /search with updated sort parameters
             #}
             {% set toggle_dir = "asc" if form_data.sort_dir == "desc" else "desc" %}
 
             <th>
               <a
                 href="{{ url_for('search',
-                                title=form_data.title,
-                                author_id=form_data.author_id,
-                                category_id=form_data.category_id,
-                                sort_by='title',
-                                sort_dir=( 'asc' if form_data.sort_by != 'title' or form_data.sort_dir=='desc' else 'desc' ) ) }}">
+                                  title=form_data.title,
+                                  author_id=form_data.author_id,
+                                  category_id=form_data.category_id,
+                                  sort_by='title',
+                                  sort_dir=( 'asc' 
+                                              if form_data.sort_by != 'title' 
+                                                 or form_data.sort_dir == 'desc' 
+                                              else 'desc' ) ) }}"
+              >
                 Title
                 {% if form_data.sort_by == 'title' %}
-                  {{ '↑' if form_data.sort_dir=='asc' else '↓' }}
+                  {{ '↑' if form_data.sort_dir == 'asc' else '↓' }}
                 {% endif %}
               </a>
             </th>
@@ -73,14 +91,18 @@
             <th>
               <a
                 href="{{ url_for('search',
-                                title=form_data.title,
-                                author_id=form_data.author_id,
-                                category_id=form_data.category_id,
-                                sort_by='description',
-                                sort_dir=( 'asc' if form_data.sort_by != 'description' or form_data.sort_dir=='desc' else 'desc' ) ) }}">
+                                  title=form_data.title,
+                                  author_id=form_data.author_id,
+                                  category_id=form_data.category_id,
+                                  sort_by='description',
+                                  sort_dir=( 'asc' 
+                                              if form_data.sort_by != 'description' 
+                                                 or form_data.sort_dir == 'desc' 
+                                              else 'desc' ) ) }}"
+              >
                 Description
                 {% if form_data.sort_by == 'description' %}
-                  {{ '↑' if form_data.sort_dir=='asc' else '↓' }}
+                  {{ '↑' if form_data.sort_dir == 'asc' else '↓' }}
                 {% endif %}
               </a>
             </th>
@@ -88,14 +110,18 @@
             <th>
               <a
                 href="{{ url_for('search',
-                                title=form_data.title,
-                                author_id=form_data.author_id,
-                                category_id=form_data.category_id,
-                                sort_by='publisher',
-                                sort_dir=( 'asc' if form_data.sort_by != 'publisher' or form_data.sort_dir=='desc' else 'desc' ) ) }}">
+                                  title=form_data.title,
+                                  author_id=form_data.author_id,
+                                  category_id=form_data.category_id,
+                                  sort_by='publisher',
+                                  sort_dir=( 'asc' 
+                                              if form_data.sort_by != 'publisher' 
+                                                 or form_data.sort_dir == 'desc' 
+                                              else 'desc' ) ) }}"
+              >
                 Publisher
                 {% if form_data.sort_by == 'publisher' %}
-                  {{ '↑' if form_data.sort_dir=='asc' else '↓' }}
+                  {{ '↑' if form_data.sort_dir == 'asc' else '↓' }}
                 {% endif %}
               </a>
             </th>
@@ -103,14 +129,18 @@
             <th>
               <a
                 href="{{ url_for('search',
-                                title=form_data.title,
-                                author_id=form_data.author_id,
-                                category_id=form_data.category_id,
-                                sort_by='publish_date',
-                                sort_dir=( 'asc' if form_data.sort_by != 'publish_date' or form_data.sort_dir=='desc' else 'desc' ) ) }}">
+                                  title=form_data.title,
+                                  author_id=form_data.author_id,
+                                  category_id=form_data.category_id,
+                                  sort_by='publish_date',
+                                  sort_dir=( 'asc' 
+                                              if form_data.sort_by != 'publish_date' 
+                                                 or form_data.sort_dir == 'desc' 
+                                              else 'desc' ) ) }}"
+              >
                 Publish Date
                 {% if form_data.sort_by == 'publish_date' %}
-                  {{ '↑' if form_data.sort_dir=='asc' else '↓' }}
+                  {{ '↑' if form_data.sort_dir == 'asc' else '↓' }}
                 {% endif %}
               </a>
             </th>

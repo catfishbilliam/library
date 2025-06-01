@@ -1,0 +1,198 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+  <form
+    class="add-form"
+    method="post"
+    action="{{ url_for('add') }}"
+    style="
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    "
+  >
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <label for="title" style="font-weight: 600; color: #34495e;">Title</label>
+      <input
+        type="text"
+        name="title"
+        id="title"
+        required
+        style="
+          padding: 8px 10px;
+          border: 2px solid #bdc3c7;
+          border-radius: 6px;
+          font-size: 1rem;
+        "
+      />
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <label for="description" style="font-weight: 600; color: #34495e;">Description</label>
+      <textarea
+        name="description"
+        id="description"
+        rows="4"
+        style="
+          padding: 8px 10px;
+          border: 2px solid #bdc3c7;
+          border-radius: 6px;
+          font-size: 1rem;
+          resize: vertical;
+        "
+      ></textarea>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <label for="ean_isbn13" style="font-weight: 600; color: #34495e;">ISBN-13</label>
+      <input
+        type="text"
+        name="ean_isbn13"
+        id="ean_isbn13"
+        style="
+          padding: 8px 10px;
+          border: 2px solid #bdc3c7;
+          border-radius: 6px;
+          font-size: 1rem;
+        "
+      />
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <label for="upc_isbn10" style="font-weight: 600; color: #34495e;">ISBN-10</label>
+      <input
+        type="text"
+        name="upc_isbn10"
+        id="upc_isbn10"
+        style="
+          padding: 8px 10px;
+          border: 2px solid #bdc3c7;
+          border-radius: 6px;
+          font-size: 1rem;
+        "
+      />
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <label for="publisher" style="font-weight: 600; color: #34495e;">Publisher</label>
+      <input
+        type="text"
+        name="publisher"
+        id="publisher"
+        style="
+          padding: 8px 10px;
+          border: 2px solid #bdc3c7;
+          border-radius: 6px;
+          font-size: 1rem;
+        "
+      />
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <label for="publish_date" style="font-weight: 600; color: #34495e;">Publish Date</label>
+      <input
+        type="date"
+        name="publish_date"
+        id="publish_date"
+        style="
+          padding: 8px 10px;
+          border: 2px solid #bdc3c7;
+          border-radius: 6px;
+          font-size: 1rem;
+        "
+      />
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <label for="author_id" style="font-weight: 600; color: #34495e;">Author</label>
+      <select
+        name="author_id"
+        id="author_id"
+        required
+        style="
+          padding: 8px 10px;
+          border: 2px solid #bdc3c7;
+          border-radius: 6px;
+          font-size: 1rem;
+        "
+      >
+        <option value="">-- Select Author --</option>
+        {% for auth in authors %}
+          <option value="{{ auth[0] }}">{{ auth[1] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <label for="category_id" style="font-weight: 600; color: #34495e;">Genre</label>
+      <select
+        name="category_id"
+        id="category_id"
+        required
+        style="
+          padding: 8px 10px;
+          border: 2px solid #bdc3c7;
+          border-radius: 6px;
+          font-size: 1rem;
+        "
+      >
+        <option value="">-- Select Genre --</option>
+        {% for cat in categories %}
+          <option value="{{ cat[0] }}">{{ cat[1] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Buttons: stacked underneath all fields -->
+    <div class="search-actions" style="margin-top: 10px;">
+      <button
+        type="submit"
+        style="
+          background: linear-gradient(135deg, #3498db, #1f3a93);
+          color: #ffffff;
+          padding: 8px 16px;
+          font-size: 1rem;
+          font-weight: 600;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          width: 100%;
+        "
+      >
+        Add Book
+      </button>
+      <a
+        href="{{ url_for('search') }}"
+        style="
+          background-color: #f1c40f;
+          color: #2c3e50;
+          padding: 8px 16px;
+          font-size: 1rem;
+          font-weight: 600;
+          border-radius: 8px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          text-align: center;
+          width: 100%;
+          display: inline-block;
+          margin-top: 4px;
+        "
+      >
+        Cancel
+      </a>
+    </div>
+  </form>
+
+  {% if message %}
+    <p class="no-results" style="margin-top: 20px; color: #27ae60; text-align: center;">
+      {{ message }}
+    </p>
+  {% endif %}
+{% endblock %}
