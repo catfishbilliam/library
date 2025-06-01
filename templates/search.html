@@ -1,3 +1,4 @@
+{# templates/search.html #}
 {% extends "layout.html" %}
 
 {% block content %}
@@ -34,12 +35,22 @@
       </select>
     </div>
 
-    <!-- ─── All Buttons (Add / Search / Clear) in one "button-row" ─── -->
-    <div class="button-row">
+    <!-- ─── NLP “I’m feeling…” field ─── -->
+    <div style="flex: 1 1 100%; display: flex; flex-direction: column;">
+      <label for="nlp"><strong>I'm feeling or looking for...</strong></label>
+      <input
+        type="text"
+        name="nlp"
+        id="nlp"
+        value="{{ form_data.nlp }}"
+        placeholder="e.g. ‘something uplifting about space exploration’"
+      />
+    </div>
 
+    <!-- ─── Buttons: Search / Add / Clear ─── -->
+    <div class="button-row">
       <!-- Search Button -->
       <button type="submit" class="btn-search">Search</button>
-
       <!-- Add New Book -->
       <a
         href="{{ url_for('add') }}"
@@ -49,12 +60,11 @@
         <span style="font-size: 1.2rem; line-height: 1;">➕</span>
         <span>Add New Book</span>
       </a>
-
       <!-- Clear Button -->
       <a href="{{ url_for('search') }}" class="btn-clear">Clear</a>
     </div>
 
-    <!-- ─── Hidden inputs (preserve sort state if used) ─── -->
+    <!-- ─── Hidden inputs (preserve sort state) ─── -->
     <input type="hidden" name="sort_by"  value="{{ form_data.sort_by }}">
     <input type="hidden" name="sort_dir" value="{{ form_data.sort_dir }}">
   </form>
@@ -64,17 +74,14 @@
       <table>
         <thead>
           <tr>
-            {#  
-              Each <th> is a link that re‐fires /search with updated sort parameters
-            #}
             {% set toggle_dir = "asc" if form_data.sort_dir == "desc" else "desc" %}
-
             <th>
               <a
                 href="{{ url_for('search',
                                   title=form_data.title,
                                   author_id=form_data.author_id,
                                   category_id=form_data.category_id,
+                                  nlp=form_data.nlp,
                                   sort_by='title',
                                   sort_dir=( 'asc' 
                                               if form_data.sort_by != 'title' 
@@ -94,6 +101,7 @@
                                   title=form_data.title,
                                   author_id=form_data.author_id,
                                   category_id=form_data.category_id,
+                                  nlp=form_data.nlp,
                                   sort_by='description',
                                   sort_dir=( 'asc' 
                                               if form_data.sort_by != 'description' 
@@ -113,6 +121,7 @@
                                   title=form_data.title,
                                   author_id=form_data.author_id,
                                   category_id=form_data.category_id,
+                                  nlp=form_data.nlp,
                                   sort_by='publisher',
                                   sort_dir=( 'asc' 
                                               if form_data.sort_by != 'publisher' 
@@ -132,6 +141,7 @@
                                   title=form_data.title,
                                   author_id=form_data.author_id,
                                   category_id=form_data.category_id,
+                                  nlp=form_data.nlp,
                                   sort_by='publish_date',
                                   sort_dir=( 'asc' 
                                               if form_data.sort_by != 'publish_date' 
@@ -163,7 +173,7 @@
         </tbody>
       </table>
     </div>
-  {% elif form_data.title or form_data.author_id or form_data.category_id %}
+  {% elif form_data.title or form_data.author_id or form_data.category_id or form_data.nlp %}
     <p class="no-results">No books matched your criteria.</p>
   {% endif %}
 {% endblock %}

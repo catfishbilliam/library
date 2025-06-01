@@ -5,8 +5,8 @@
     <title>Conway-Harris Library</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link
-    href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600;700&display=swap"
-    rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600;700&display=swap"
+      rel="stylesheet"
     />
     <style>
       /* ---------- Reset & Base Styles ---------- */
@@ -26,7 +26,7 @@
         line-height: 1.6;
         display: flex;
         flex-direction: column;
-        }
+      }
       a {
         text-decoration: none;
         color: #f1c40f;                    /* bright yellow links */
@@ -127,6 +127,8 @@
         flex: 0 0 100%;
         display: flex;
         flex-direction: column;            /* always stack vertically */
+        justify-items: center;
+        align-items: center;
         gap: 10px;
         margin-top: 12px;
       }
@@ -142,17 +144,19 @@
         cursor: pointer;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         transition: background 0.2s ease, transform 0.1s ease;
+        width: 25%;
+        text-align: center;
       }
       .btn-add:hover {
         background: linear-gradient(135deg, #1f3a93, #2980b9);
         transform: translateY(-1px);
-        }
+      }
       .btn-add:active {
         transform: translateY(0);
       }
 
       .btn-search {
-        background: linear-gradient(135deg, #44c767, #389e5f); /* same green gradient */
+        background: linear-gradient(135deg, #44c767, #389e5f); /* green gradient */
         color: #ffffff;
         padding: 10px 20px;
         font-size: 1rem;
@@ -162,6 +166,8 @@
         cursor: pointer;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         transition: background 0.2s ease, transform 0.1s ease;
+        width: 25%;
+        text-align: center;
       }
       .btn-search:hover {
         background: linear-gradient(135deg, #389e5f, #2f8051);
@@ -181,6 +187,8 @@
         border-radius: 8px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         transition: background-color 0.2s ease, transform 0.1s ease;
+        width: 25%;
+        text-align: center;
       }
       .btn-clear:hover {
         background-color: #d4ac0d;         /* deeper yellow */
@@ -252,7 +260,7 @@
         .search-form div {
           margin-bottom: 0;  /* no extra margins between fields */
         }
-        /* .button-row is already column-oriented above */
+        /* button-row is already column‐oriented above */
         .button-row .btn-add,
         .button-row .btn-search,
         .button-row .btn-clear {
